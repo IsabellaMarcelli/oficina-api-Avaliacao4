@@ -1,0 +1,102 @@
+### =========================================================
+### AVALIAÇÃO 4 - Segurança via token JWT
+### 1) Faça o login abaixo e copie o "token" da resposta
+### 2) Cole o token na variável @token
+### 3) Todas as outras requisições enviam: Authorization: Bearer {{token}}
+### =========================================================
+
+@token = COLE_AQUI_O_TOKEN_DO_LOGIN
+
+### LOGIN - senha correta (200 + { "token": "..." })
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+  "login": "admin@oficina.com",
+  "senha": "123456"
+}
+
+### LOGIN - senha errada (bloqueado)
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+  "login": "admin@oficina.com",
+  "senha": "senhaerrada"
+}
+
+### GET SEM token (deve ser bloqueado - 403)
+GET http://localhost:8080/consertos
+
+### GET com token INVÁLIDO (deve ser bloqueado)
+GET http://localhost:8080/consertos
+Authorization: Bearer token.invalido.qualquer
+
+### =========================================================
+### Requisições da Avaliação 3, agora COM token
+### =========================================================
+
+### POST - cadastrar conserto
+POST http://localhost:8080/consertos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "dataEntrada": "05/10/2026",
+  "dataSaida": "08/10/2026",
+  "mecanico": { "nome": "Seu Jorge", "anosExperiencia": 15 },
+  "veiculo": { "marca": "Fiat", "modelo": "Uno", "ano": "2012", "cor": "Vermelho" }
+}
+
+### POST - sem cor e sem datas (opcionais)
+POST http://localhost:8080/consertos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "mecanico": { "nome": "Dona Cida", "anosExperiencia": 8 },
+  "veiculo": { "marca": "VW", "modelo": "Gol", "ano": "2018" }
+}
+
+### GET - todos os dados, paginado
+GET http://localhost:8080/consertos?size=2&page=0&sort=id,desc
+Authorization: Bearer {{token}}
+
+### GET - alguns dados (só ativos, sem paginação)
+GET http://localhost:8080/consertos/algunsdados
+Authorization: Bearer {{token}}
+
+### GET - um conserto pelo id
+GET http://localhost:8080/consertos/1
+Authorization: Bearer {{token}}
+
+### GET - id inexistente (404)
+GET http://localhost:8080/consertos/999
+Authorization: Bearer {{token}}
+
+### PUT - altera só data de saída / nome do mecânico / anos de experiência
+PUT http://localhost:8080/consertos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "dataSaida": "10/10/2026",
+  "nomeMecanico": "Seu Jorge Silva",
+  "anosExperienciaMecanico": 16
+}
+
+### DELETE - exclusão lógica (204)
+DELETE http://localhost:8080/consertos/1
+Authorization: Bearer {{token}}
+
+### Teste de validação (400): data fora do formato e ano com 2 dígitos
+POST http://localhost:8080/consertos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "dataEntrada": "2026-10-05",
+  "mecanico": { "nome": "" },
+  "veiculo": { "marca": "Fiat", "modelo": "Uno", "ano": "12" }
+}
